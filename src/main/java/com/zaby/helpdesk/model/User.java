@@ -44,7 +44,4 @@ public class User extends AuditableCustom {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "department_id")
     private Department department;
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
 }
