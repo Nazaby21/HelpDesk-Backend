@@ -39,7 +39,7 @@ public class TicketServiceImpl implements TicketService {
         // status
         ticket.setStatus(Status.PENDING);
 
-//        Category category = categoryRepository
+//        Category category = CategoryRepository
 
 //        if (ticketRequest.assignedTo() != null) {
 //            User assignedUser = userRepository.findById(ticketRequest.assignedTo())
