@@ -45,7 +45,4 @@ public class Ticket extends AuditableCustom {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to")
     private User assignedTo;
-
-
-
 }

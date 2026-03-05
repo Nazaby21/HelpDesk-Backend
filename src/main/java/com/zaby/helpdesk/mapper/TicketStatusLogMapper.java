@@ -12,7 +12,6 @@ public interface TicketStatusLogMapper {
     @Mapping(target = "ticketId", source = "ticket.id")
     @Mapping(target = "changedByName",
             expression = "java(ticketStatusLog.getChangedBy() != null ? ticketStatusLog.getChangedBy().getFirstName() + \" \" + ticketStatusLog.getChangedBy().getLastName() : null)")
-
     TicketStatusLogResponse toResponse(TicketStatusLog ticketStatusLog);
 
     @Mapping(target = "id", ignore = true)
