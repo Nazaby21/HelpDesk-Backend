@@ -2,13 +2,11 @@ package com.zaby.helpdesk.model;
 
 import com.zaby.helpdesk.enumeration.Role;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@AllArgsConstructor
 @NoArgsConstructor
 @ToString
 @Getter
@@ -26,13 +24,13 @@ public class User extends AuditableCustom {
     @Column(name = "last_name", length = 255)
     private String lastName;
 
-    @Column(length = 50)
+    @Column(length = 50, unique = true)
     private String email;
 
     @Column(name = "phone_number",  length = 50)
     private String phoneNumber;
 
-    @Column(length = 50)
+    @Column(length = 255)
     private String password;
 
     @Column(name = "image_url")

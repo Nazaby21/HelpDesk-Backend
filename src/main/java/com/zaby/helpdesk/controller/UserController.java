@@ -1,7 +1,6 @@
 package com.zaby.helpdesk.controller;
 
 import com.zaby.helpdesk.dto.request.UserRequest;
-import com.zaby.helpdesk.dto.response.TicketResponse;
 import com.zaby.helpdesk.dto.response.UserResponse;
 import com.zaby.helpdesk.service.UserService;
 import lombok.RequiredArgsConstructor;
