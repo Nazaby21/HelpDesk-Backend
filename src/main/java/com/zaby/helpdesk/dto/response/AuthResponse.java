@@ -5,6 +5,8 @@ public record AuthResponse(
         String message,
         String firstName,
         String lastName,
-        Long departmentId
+        Long departmentId,
+        String accessToken,
+        String refreshToken
 ) {
 }
