@@ -13,8 +13,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class TicketStatusLogServiceImpl implements TicketStatusLogService {
-    private TicketStatusLogRepository ticketStatusLogRepository;
-    private TicketStatusLogMapper ticketStatusLogMapper;
+    private final TicketStatusLogRepository ticketStatusLogRepository;
+    private final TicketStatusLogMapper ticketStatusLogMapper;
 
     @Override
     public List<TicketStatusLogResponse> getLogsByTicketId(Long ticketId){

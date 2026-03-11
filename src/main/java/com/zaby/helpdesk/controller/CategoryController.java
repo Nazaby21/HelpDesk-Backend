@@ -24,7 +24,7 @@ public class CategoryController {
     }
 
     // update department
-    @PutMapping
+    @PutMapping("{id}")
     public ResponseEntity<CategoryResponse> updateCategory(@RequestBody CategoryRequest categoryRequest, @PathVariable Long id) {
         CategoryResponse categoryResponse = categoryService.updateCategory(id, categoryRequest);
         return ResponseEntity.ok(categoryResponse);

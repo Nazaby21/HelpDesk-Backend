@@ -17,8 +17,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DepartmentServiceImpl implements DepartmentService {
 
-    private DepartmentRepository departmentRepository;
-    private DepartmentMapper departmentMapper;
+    private final DepartmentRepository departmentRepository;
+    private final DepartmentMapper departmentMapper;
 
     @Override
     public DepartmentResponse createDepartment(DepartmentRequest departmentRequest) {

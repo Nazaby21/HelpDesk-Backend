@@ -1,6 +1,7 @@
 package com.zaby.helpdesk.controller;
 
 import com.zaby.helpdesk.dto.request.TicketRequest;
+import com.zaby.helpdesk.dto.request.UpdateStatusRequest;
 import com.zaby.helpdesk.dto.response.TicketResponse;
 import com.zaby.helpdesk.enumeration.Status;
 import com.zaby.helpdesk.model.Ticket;
@@ -46,9 +47,8 @@ public class TicketController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<TicketResponse> updateTicketStatus(
             @PathVariable Long id,
-            @RequestParam Status status,
-            @RequestParam String remark){
-        TicketResponse ticketResponse = ticketService.updateTicketStatus(id, status, remark);
+            @RequestBody UpdateStatusRequest updateStatusRequest){
+        TicketResponse ticketResponse = ticketService.updateTicketStatus(id, updateStatusRequest.status(), updateStatusRequest.remark());
         return ResponseEntity.ok(ticketResponse);
     }
 

@@ -27,7 +27,7 @@ public class AuditableCustom {
 
     @LastModifiedBy
     @Column(name = "updated_by")
-    private String updatedBy;
+    private Long updatedBy;
 
     @LastModifiedDate
     @Column(name = "updated_at")

@@ -20,10 +20,10 @@ import java.util.List;
 @Transactional
 public class UserServiceImpl implements UserService {
 
-    private UserRepository userRepository;
-    private UserMapper userMapper;
-    private PasswordEncoder passwordEncoder;
-    private DepartmentRepository departmentRepository;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final DepartmentRepository departmentRepository;
 
     @Override
     public UserResponse createUser(UserRequest userRequest) {
@@ -50,13 +50,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse updateUser(long id, UserRequest userRequest) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setFirstName(userRequest.firstName());
         user.setLastName(userRequest.lastName());
         user.setPhoneNumber(userRequest.phoneNumber());
         user.setImageUrl(userRequest.imageUrl());
         user.setRole(userRequest.role());
+
+        // find department
+        Department department = departmentRepository.findById(userRequest.departmentId())
+                .orElseThrow(() -> new RuntimeException("Department not found"));
+
+        user.setDepartment(department);
 
         if(userRequest.password() != null){
             user.setPassword(passwordEncoder.encode(userRequest.password()));
@@ -68,7 +74,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse getUserById(long id) {
-        User user =  userRepository.findById(id)
+        User user =  userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return userMapper.toResponse(user);
@@ -76,7 +82,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponse> getAllUsers() {
-        return userRepository.findAll()
+        return userRepository.findAllByDeletedFalse()
                 .stream()
                 .map(userMapper::toResponse)
                 .toList();
@@ -84,9 +90,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse deleteUser(long id) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        user.getDeleteAt();
+        user.setDeleted(true);
         userRepository.save(user);
         return userMapper.toResponse(user);
     }

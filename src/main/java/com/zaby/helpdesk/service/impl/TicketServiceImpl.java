@@ -92,9 +92,14 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional
     public TicketResponse updateTicket(Long id, TicketRequest ticketRequest) {
+
         // check ticket
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ticket Not Found"));
+
+        if (ticket.isDeleted()) {
+            throw new IllegalStateException("Deleted ticket cannot be updated");
+        }
 
         // validate ticket after status change to complete
         if(ticket.getStatus() == Status.COMPLETED) {
@@ -141,6 +146,10 @@ public class TicketServiceImpl implements TicketService {
 
         Status currentStatus = ticket.getStatus();
 
+        if (ticket.isDeleted()) {
+            throw new IllegalStateException("Deleted ticket cannot be updated");
+        }
+
         // cant update if it completed
         if(currentStatus == Status.COMPLETED) {
             throw new IllegalArgumentException("Completed ticket cannot be modified");
@@ -177,7 +186,7 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public TicketResponse deletedTicket(Long id) {
-        Ticket  ticket = ticketRepository.findById(id)
+        Ticket  ticket = ticketRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new RuntimeException("Ticket Not Found"));
 
         if (ticket.getStatus() == Status.COMPLETED) {
@@ -201,7 +210,7 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public TicketResponse getById(Long id) {
-        Ticket  ticket = ticketRepository.findById(id)
+        Ticket  ticket = ticketRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new RuntimeException("Ticket Not Found"));
 
         return  ticketMapper.toTicketResponse(ticket);
