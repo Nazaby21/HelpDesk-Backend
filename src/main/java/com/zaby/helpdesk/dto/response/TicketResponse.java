@@ -1,6 +1,8 @@
 package com.zaby.helpdesk.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.zaby.helpdesk.enumeration.Priority;
+import com.zaby.helpdesk.enumeration.Status;
 import com.zaby.helpdesk.model.TicketStatusLog;
 
 import java.time.LocalDateTime;
@@ -11,11 +13,15 @@ public record TicketResponse (
         String ticketTitle,
         String description,
         Priority priority,
+        Status status,
         Long categoryId,
         String categoryName,
+        Long subCategoryId,
+        String subCategoryName,
         Long assignedTo,
         String assignedName,
-        List<TicketStatusLog> logs,
+        List<TicketStatusLogResponse> logs,
         Long createdBy,
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime createdAt
 ){}

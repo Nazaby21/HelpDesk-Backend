@@ -12,5 +12,6 @@ public record TicketRequest (
         @NotNull
         Priority priority,
         Long categoryId,
+        Long subCategoryId,
         Long assignedTo
 ){}

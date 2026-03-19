@@ -1,0 +1,91 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------------< com.zaby:helpdesk >--------------------------
+[INFO] Building helpdesk 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.5.0:clean (default-clean) @ helpdesk ---
+[INFO] Deleting D:\Course Wing\Final\fix\helpdesk\target
+[INFO] 
+[INFO] >>> spring-boot:4.0.3:run (default-cli) > test-compile @ helpdesk >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ helpdesk ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ helpdesk ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 77 source files with javac [debug parameters release 21] to target\classes
+[WARNING] /D:/Course Wing/Final/fix/helpdesk/src/main/java/com/zaby/helpdesk/mapper/UserMapper.java:[18,10] Unmapped target properties: "createdAt, createdBy, updatedBy, updatedAt, deleted, deleteAt, id".
+[WARNING] /D:/Course Wing/Final/fix/helpdesk/src/main/java/com/zaby/helpdesk/mapper/TicketHistoryMapper.java:[16,27] Unmapped target property: "ticketTitle".
+[WARNING] /D:/Course Wing/Final/fix/helpdesk/src/main/java/com/zaby/helpdesk/mapper/DepartmentMapper.java:[13,16] Unmapped target property: "id".
+[WARNING] /D:/Course Wing/Final/fix/helpdesk/src/main/java/com/zaby/helpdesk/mapper/TicketStatusLogMapper.java:[15,29] Unmapped target property: "changedById".
+[WARNING] /D:/Course Wing/Final/fix/helpdesk/src/main/java/com/zaby/helpdesk/mapper/CategoryMapper.java:[12,22] Unmapped target property: "parentId".
+[WARNING] /D:/Course Wing/Final/fix/helpdesk/src/main/java/com/zaby/helpdesk/mapper/CategoryMapper.java:[14,14] Unmapped target properties: "id, parent, subCategories".
+[WARNING] /D:/Course Wing/Final/fix/helpdesk/src/main/java/com/zaby/helpdesk/mapper/TicketMapper.java:[18,20] Unmapped target properties: "subCategoryId, subCategoryName".
+[WARNING] /D:/Course Wing/Final/fix/helpdesk/src/main/java/com/zaby/helpdesk/mapper/TicketMapper.java:[24,12] Unmapped target properties: "updatedBy, updatedAt, deleted, deleteAt, id, status, ticketStatusLog, ticketHistory, subCategory".
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ helpdesk ---
+[INFO] skip non existing resourceDirectory D:\Course Wing\Final\fix\helpdesk\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.14.1:testCompile (default-testCompile) @ helpdesk ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 1 source file with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] <<< spring-boot:4.0.3:run (default-cli) < test-compile @ helpdesk <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:4.0.3:run (default-cli) @ helpdesk ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v4.0.3)
+
+2026-03-19T20:17:13.840+07:00  INFO 21532 --- [  restartedMain] com.zaby.helpdesk.HelpdeskApplication    : Starting HelpdeskApplication using Java 21.0.1 with PID 21532 (D:\Course Wing\Final\fix\helpdesk\target\classes started by Nazaby in D:\Course Wing\Final\fix\helpdesk)
+2026-03-19T20:17:13.842+07:00  INFO 21532 --- [  restartedMain] com.zaby.helpdesk.HelpdeskApplication    : No active profile set, falling back to 1 default profile: "default"
+2026-03-19T20:17:13.872+07:00  INFO 21532 --- [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-03-19T20:17:13.872+07:00  INFO 21532 --- [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-03-19T20:17:14.314+07:00  INFO 21532 --- [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-19T20:17:14.358+07:00  INFO 21532 --- [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 40 ms. Found 8 JPA repository interfaces.
+2026-03-19T20:17:14.805+07:00  INFO 21532 --- [  restartedMain] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+2026-03-19T20:17:14.814+07:00  INFO 21532 --- [  restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-03-19T20:17:14.814+07:00  INFO 21532 --- [  restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.18]
+2026-03-19T20:17:14.840+07:00  INFO 21532 --- [  restartedMain] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 966 ms
+2026-03-19T20:17:14.864+07:00 ERROR 21532 --- [  restartedMain] t.s.DeferredServletContainerInitializers : Error starting Tomcat context. Exception: org.springframework.beans.factory.UnsatisfiedDependencyException. Message: Error creating bean with name 'jwtAuthenticationFilter' defined in file [D:\Course Wing\Final\fix\helpdesk\target\classes\com\zaby\helpdesk\security\JwtAuthenticationFilter.class]: Unsatisfied dependency expressed through constructor parameter 1: Error creating bean with name 'customUserDetailsService' defined in file [D:\Course Wing\Final\fix\helpdesk\target\classes\com\zaby\helpdesk\security\CustomUserDetailsService.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'userRepository' defined in com.zaby.helpdesk.repository.UserRepository defined in @EnableJpaRepositories declared on DataJpaRepositoriesRegistrar.EnableJpaRepositoriesConfiguration: Cannot resolve reference to bean 'jpaSharedEM_entityManagerFactory' while setting bean property 'entityManager'
+2026-03-19T20:17:14.877+07:00  INFO 21532 --- [  restartedMain] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-03-19T20:17:14.881+07:00  WARN 21532 --- [  restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Unable to start web server
+2026-03-19T20:17:14.884+07:00  INFO 21532 --- [  restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-03-19T20:17:14.893+07:00 ERROR 21532 --- [  restartedMain] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Failed to configure a DataSource: 'url' attribute is not specified and no embedded datasource could be configured.
+
+Reason: Failed to determine a suitable driver class
+
+
+Action:
+
+Consider the following:
+	If you want an embedded database (H2, HSQL or Derby), please put it on the classpath.
+	If you have database settings to be loaded from a particular profile you may need to activate it (no profiles are currently active).
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  11.557 s
+[INFO] Finished at: 2026-03-19T20:17:14+07:00
+[INFO] ------------------------------------------------------------------------

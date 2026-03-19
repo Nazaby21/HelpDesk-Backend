@@ -26,4 +26,8 @@ public class RefreshToken {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(expiresDate);
+    }
 }

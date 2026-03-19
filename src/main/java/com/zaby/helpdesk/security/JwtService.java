@@ -24,7 +24,7 @@ public class JwtService {
                 .setSubject(userDetails.getUsername()) // email or username
                 .setId(UUID.randomUUID().toString())   // ensures uniqueness
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 60_000)) // 15 min
+                .setExpiration(new Date(System.currentTimeMillis() + 900_000)) // 15 min
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

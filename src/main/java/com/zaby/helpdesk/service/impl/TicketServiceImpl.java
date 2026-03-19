@@ -40,8 +40,9 @@ public class TicketServiceImpl implements TicketService {
     );
 
     private void validateStatusTransition(Status from, Status to) {
-        if (!allowedTransitions.containsKey(from)) {
-            throw new IllegalArgumentException("Invalid transition from " + from + " to " + to);
+        List<Status> allowed = allowedTransitions.get(from);
+        if (allowed == null || !allowed.contains(to)) {
+            throw new IllegalArgumentException("Invalid transition from " + from + " to " + to + ". Allowed: " + allowed);
         }
     }
 
@@ -58,6 +59,13 @@ public class TicketServiceImpl implements TicketService {
         Category category = categoryRepository.findById(ticketRequest.categoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
         ticket.setCategory(category);
+
+        // set sub category
+        if (ticketRequest.subCategoryId() != null) {
+            Category subCategory = categoryRepository.findById(ticketRequest.subCategoryId())
+                    .orElseThrow(() -> new RuntimeException("SubCategory not found"));
+            ticket.setSubCategory(subCategory);
+        }
 
         // set assigned user
         if (ticketRequest.assignedTo() != null) {
@@ -118,6 +126,13 @@ public class TicketServiceImpl implements TicketService {
             ticket.setCategory(category);
         }
 
+        // Update sub category if provided
+        if (ticketRequest.subCategoryId() != null) {
+            Category subCategory = categoryRepository.findById(ticketRequest.subCategoryId())
+                    .orElseThrow(() -> new RuntimeException("SubCategory Not Found"));
+            ticket.setSubCategory(subCategory);
+        }
+
         // Update assigned user if provided
         if (ticketRequest.assignedTo() != null) {
             User assignedUser = userRepository.findById(ticketRequest.assignedTo())
@@ -140,7 +155,7 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     @Transactional
-    public TicketResponse updateTicketStatus(Long id, Status status, String remark) {
+    public TicketResponse updateTicketStatus(Long id, Status status, String remark, Long assignedUserId) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ticket Not Found"));
 
@@ -160,6 +175,13 @@ public class TicketServiceImpl implements TicketService {
 
         // update status
         ticket.setStatus(status);
+
+        // auto-assign technician when accepting (PENDING -> IN_PROGRESS)
+        if (status == Status.IN_PROGRESS && ticket.getAssignedTo() == null && assignedUserId != null) {
+            User technician = userRepository.findById(assignedUserId)
+                    .orElseThrow(() -> new RuntimeException("Technician Not Found"));
+            ticket.setAssignedTo(technician);
+        }
 
         // create status log
         TicketStatusLog log = new TicketStatusLog();
@@ -219,9 +241,25 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public Page<TicketResponse> getAll(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Ticket> tickets = ticketRepository.findAll(pageable);
+        Page<Ticket> tickets = ticketRepository.findByStatusInAndDeletedFalse(
+                List.of(Status.PENDING, Status.IN_PROGRESS), pageable);
         return tickets.map(ticketMapper::toTicketResponse);
     }
 
+    @Override
+    public Page<TicketResponse> getHistory(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Ticket> tickets = ticketRepository.findByStatusInAndDeletedFalse(
+                List.of(Status.COMPLETED), pageable);
+        return tickets.map(ticketMapper::toTicketResponse);
+    }
+
+    @Override
+    public Page<TicketResponse> getMyTickets(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Ticket> tickets = ticketRepository.findByCreatedByAndStatusInAndDeletedFalse(
+                userId, List.of(Status.PENDING, Status.IN_PROGRESS), pageable);
+        return tickets.map(ticketMapper::toTicketResponse);
+    }
 
 }

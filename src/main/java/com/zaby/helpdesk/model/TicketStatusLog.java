@@ -29,6 +29,7 @@ public class TicketStatusLog {
     @JoinColumn(name = "changed_by")
     private User changedBy;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne
     @JoinColumn(name = "ticket_id")
     private Ticket ticket;

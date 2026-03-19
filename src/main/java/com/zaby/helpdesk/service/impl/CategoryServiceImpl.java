@@ -20,6 +20,13 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponse createCategory(CategoryRequest categoryRequest) {
         Category category = categoryMapper.toEntity(categoryRequest);
+
+        if (categoryRequest.parentId() != null) {
+            Category parent = categoryRepository.findById(categoryRequest.parentId())
+                    .orElseThrow(() -> new RuntimeException("Parent Category not found"));
+            category.setParent(parent);
+        }
+
         Category saveCategory = categoryRepository.save(category);
         return categoryMapper.toCatogoryResponse(saveCategory);
     }
@@ -31,6 +38,18 @@ public class CategoryServiceImpl implements CategoryService {
 
         category.setName(categoryRequest.name());
         category.setDescription(categoryRequest.description());
+
+        if (categoryRequest.parentId() != null) {
+            // Prevent circular dependency (a category cannot be its own parent)
+            if (id.equals(categoryRequest.parentId())) {
+                throw new RuntimeException("A category cannot be its own parent");
+            }
+            Category parent = categoryRepository.findById(categoryRequest.parentId())
+                    .orElseThrow(() -> new RuntimeException("Parent Category not found"));
+            category.setParent(parent);
+        } else {
+            category.setParent(null); // Clear parent if not provided
+        }
 
         categoryRepository.save(category);
         return categoryMapper.toCatogoryResponse(category);
@@ -45,7 +64,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryResponse> getAllCategories() {
-        return categoryRepository.findAll()
+        return categoryRepository.findAllByParentIsNull()
                 .stream()
                 .map(categoryMapper::toCatogoryResponse)
                 .toList();

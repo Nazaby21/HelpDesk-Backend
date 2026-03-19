@@ -2,10 +2,12 @@ package com.zaby.helpdesk.controller;
 
 import com.zaby.helpdesk.dto.request.UserRequest;
 import com.zaby.helpdesk.dto.response.UserResponse;
+import com.zaby.helpdesk.security.CustomUserDetails;
 import com.zaby.helpdesk.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +25,17 @@ public class UserController {
     public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest userRequest){
         UserResponse userResponse = userService.createUser(userRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
+        // Extract user details from JWT
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        // Fetch full user info from DB if needed
+        UserResponse userResponse = userService.getUserById(userDetails.getUser().getId());
+
+        return ResponseEntity.ok(userResponse);
     }
 
     // find user by id

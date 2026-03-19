@@ -9,9 +9,10 @@ import org.springframework.http.ResponseEntity;
 public interface TicketService {
     TicketResponse createTicket(TicketRequest ticketRequest);
     TicketResponse updateTicket(Long id, TicketRequest ticketRequest);
-    TicketResponse updateTicketStatus(Long id, Status status, String remark);
+    TicketResponse updateTicketStatus(Long id, Status status, String remark, Long assignedUserId);
     TicketResponse deletedTicket(Long id);
     TicketResponse getById(Long id);
     Page<TicketResponse>getAll(int page, int size);
-//    Page<TicketResponse>getAll(int page, int size);
+    Page<TicketResponse>getHistory(int page, int size);
+    Page<TicketResponse>getMyTickets(Long userId, int page, int size);
 }

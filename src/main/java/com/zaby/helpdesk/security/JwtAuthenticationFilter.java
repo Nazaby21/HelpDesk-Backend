@@ -31,9 +31,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String email = null;
         String token = null;
 
-        if(authHeader != null && authHeader.startsWith("Bearer ")){
-            token = authHeader.substring(7);
-            email = jwtService.extractEmail(token);
+        try {
+            if(authHeader != null && authHeader.startsWith("Bearer ")){
+                token = authHeader.substring(7);
+                email = jwtService.extractEmail(token);
+            }
+        } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+            // Let the SecurityContext remain empty to trigger a 401
+        } catch (Exception ex) {
+            // Ignore other parse errors
         }
 
         if(email != null && SecurityContextHolder.getContext().getAuthentication() == null){
