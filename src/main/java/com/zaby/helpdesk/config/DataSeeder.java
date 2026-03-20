@@ -48,9 +48,10 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedAdminUser() {
-        String adminEmail = "admin@helpdesk.com";
+        String adminEmail = "admin1@helpdesk.com";
 
-        if (userRepository.findByEmail(adminEmail).isEmpty()) {
+        var existingAdmin = userRepository.findByEmail(adminEmail);
+        if (existingAdmin.isEmpty()) {
             Department itDept = departmentRepository.findAll()
                     .stream()
                     .filter(d -> "IT".equals(d.getName()))
@@ -61,14 +62,18 @@ public class DataSeeder implements CommandLineRunner {
             admin.setFirstName("Admin");
             admin.setLastName("User");
             admin.setEmail(adminEmail);
-            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setPassword(passwordEncoder.encode("admin1234"));
             admin.setRole(Role.ADMIN);
             admin.setDepartment(itDept);
 
             userRepository.save(admin);
             log.info("✅ Seeded admin user: {} / admin123", adminEmail);
         } else {
-            log.info("ℹ️ Admin user already exists, skipping seed.");
+            // Ensure password is correct (may have been corrupted in a previous failed deploy)
+            User admin = existingAdmin.get();
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            userRepository.save(admin);
+            log.info("ℹ️ Admin user already exists, password reset to default.");
         }
     }
 }
