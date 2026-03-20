@@ -22,7 +22,7 @@ public class ImageController {
     public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
             Map<String, String> response = new HashMap<>();
-            response.put("error", "File is missing");
+            response.put("error", "File is missings");
             return ResponseEntity.badRequest().body(response);
         }
 
