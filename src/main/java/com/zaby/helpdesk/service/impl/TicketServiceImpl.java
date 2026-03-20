@@ -78,7 +78,8 @@ public class TicketServiceImpl implements TicketService {
                 response.createdBy(),
                 createdByName,
                 response.createdAt(),
-                completedAt
+                completedAt,
+                response.imageUrl()
         );
     }
 

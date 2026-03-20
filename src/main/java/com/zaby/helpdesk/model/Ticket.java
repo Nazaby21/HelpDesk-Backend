@@ -46,6 +46,9 @@ public class Ticket extends AuditableCustom {
     @JoinColumn(name = "sub_category_id")
     private Category subCategory;
 
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to")
     private User assignedTo;

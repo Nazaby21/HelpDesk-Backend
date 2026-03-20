@@ -13,5 +13,6 @@ public record TicketRequest (
         Priority priority,
         Long categoryId,
         Long subCategoryId,
-        Long assignedTo
+        Long assignedTo,
+        String imageUrl
 ){}
