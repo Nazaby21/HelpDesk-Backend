@@ -46,6 +46,42 @@ public class TicketServiceImpl implements TicketService {
         }
     }
 
+    private TicketResponse enrichResponse(Ticket ticket, TicketResponse response) {
+        // Resolve creator name
+        String createdByName = null;
+        if (ticket.getCreatedBy() != null) {
+            createdByName = userRepository.findById(ticket.getCreatedBy())
+                    .map(u -> u.getFirstName() + " " + u.getLastName())
+                    .orElse("Unknown");
+        }
+
+        // Derive completedAt from status logs
+        LocalDateTime completedAt = ticket.getTicketStatusLog().stream()
+                .filter(log -> "COMPLETED".equals(log.getToStatus()))
+                .map(TicketStatusLog::getChangedAt)
+                .reduce((first, second) -> second) // get the latest one
+                .orElse(null);
+
+        return new TicketResponse(
+                response.id(),
+                response.ticketTitle(),
+                response.description(),
+                response.priority(),
+                response.status(),
+                response.categoryId(),
+                response.categoryName(),
+                response.subCategoryId(),
+                response.subCategoryName(),
+                response.assignedTo(),
+                response.assignedName(),
+                response.logs(),
+                response.createdBy(),
+                createdByName,
+                response.createdAt(),
+                completedAt
+        );
+    }
+
     @Override
     @Transactional
     public TicketResponse createTicket(TicketRequest ticketRequest) {
@@ -94,7 +130,7 @@ public class TicketServiceImpl implements TicketService {
         ticketHistoryRepository.save(ticketHistory);
 
         Ticket savedTicket = ticketRepository.save(ticket); // save ticket
-        return ticketMapper.toTicketResponse(savedTicket);
+        return enrichResponse(savedTicket, ticketMapper.toTicketResponse(savedTicket));
     }
 
     @Override
@@ -150,7 +186,7 @@ public class TicketServiceImpl implements TicketService {
         ticket.getTicketHistory().add(ticketHistory);
 
         Ticket savedTicket = ticketRepository.save(ticket);
-        return ticketMapper.toTicketResponse(savedTicket);
+        return enrichResponse(savedTicket, ticketMapper.toTicketResponse(savedTicket));
     }
 
     @Override
@@ -203,7 +239,7 @@ public class TicketServiceImpl implements TicketService {
         ticket.getTicketHistory().add(history);
         Ticket savedTicket = ticketRepository.save(ticket);
 
-        return ticketMapper.toTicketResponse(savedTicket);
+        return enrichResponse(savedTicket, ticketMapper.toTicketResponse(savedTicket));
     }
 
     @Override
@@ -227,7 +263,7 @@ public class TicketServiceImpl implements TicketService {
         ticket.getTicketHistory().add(ticketHistory);
 
         Ticket savedTicket = ticketRepository.save(ticket);
-        return ticketMapper.toTicketResponse(savedTicket);
+        return enrichResponse(savedTicket, ticketMapper.toTicketResponse(savedTicket));
     }
 
     @Override
@@ -235,7 +271,7 @@ public class TicketServiceImpl implements TicketService {
         Ticket  ticket = ticketRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new RuntimeException("Ticket Not Found"));
 
-        return  ticketMapper.toTicketResponse(ticket);
+        return enrichResponse(ticket, ticketMapper.toTicketResponse(ticket));
     }
 
     @Override
@@ -243,15 +279,29 @@ public class TicketServiceImpl implements TicketService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Ticket> tickets = ticketRepository.findByStatusInAndDeletedFalse(
                 List.of(Status.PENDING, Status.IN_PROGRESS), pageable);
-        return tickets.map(ticketMapper::toTicketResponse);
+        return tickets.map(t -> enrichResponse(t, ticketMapper.toTicketResponse(t)));
     }
 
     @Override
-    public Page<TicketResponse> getHistory(int page, int size) {
+    public Page<TicketResponse> getHistory(Long userId, String role, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Ticket> tickets = ticketRepository.findByStatusInAndDeletedFalse(
-                List.of(Status.COMPLETED), pageable);
-        return tickets.map(ticketMapper::toTicketResponse);
+        Page<Ticket> tickets;
+
+        if ("ROLE_USER".equals(role)) {
+            // Users see their own completed tickets (tickets they created)
+            tickets = ticketRepository.findByCreatedByAndStatusInAndDeletedFalse(
+                    userId, List.of(Status.COMPLETED), pageable);
+        } else if ("ROLE_TECHNICIAN".equals(role)) {
+            // Technicians see completed tickets that were assigned to them
+            tickets = ticketRepository.findByAssignedToIdAndStatusInAndDeletedFalse(
+                    userId, List.of(Status.COMPLETED), pageable);
+        } else {
+            // Admin sees all completed tickets
+            tickets = ticketRepository.findByStatusInAndDeletedFalse(
+                    List.of(Status.COMPLETED), pageable);
+        }
+
+        return tickets.map(t -> enrichResponse(t, ticketMapper.toTicketResponse(t)));
     }
 
     @Override
@@ -259,7 +309,20 @@ public class TicketServiceImpl implements TicketService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Ticket> tickets = ticketRepository.findByCreatedByAndStatusInAndDeletedFalse(
                 userId, List.of(Status.PENDING, Status.IN_PROGRESS), pageable);
-        return tickets.map(ticketMapper::toTicketResponse);
+        return tickets.map(t -> enrichResponse(t, ticketMapper.toTicketResponse(t)));
+    }
+
+    @Override
+    public com.zaby.helpdesk.dto.response.DashboardStatsResponse getDashboardStats() {
+        long total = ticketRepository.countByDeletedFalse();
+        long pending = ticketRepository.countByStatusAndDeletedFalse(Status.PENDING);
+        long inProgress = ticketRepository.countByStatusAndDeletedFalse(Status.IN_PROGRESS);
+        long completed = ticketRepository.countByStatusAndDeletedFalse(Status.COMPLETED);
+        long totalUsers = userRepository.count();
+
+        return new com.zaby.helpdesk.dto.response.DashboardStatsResponse(
+                total, pending, inProgress, completed, totalUsers
+        );
     }
 
 }

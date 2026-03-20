@@ -46,4 +46,12 @@ public class CategoryController {
         CategoryResponse categoryResponse = categoryService.getCategoryById(id);
         return ResponseEntity.ok(categoryResponse);
     }
+
+    // delete category
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
+        return ResponseEntity.noContent().build();
+    }
 }

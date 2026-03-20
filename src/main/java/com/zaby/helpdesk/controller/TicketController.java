@@ -40,10 +40,15 @@ public class TicketController {
         return ResponseEntity.ok(ticketResponses);
     }
 
-    // find history (completed)
+    // find history (completed - filtered by user role)
     @GetMapping("/history")
-    public ResponseEntity<Page<TicketResponse>> getHistory(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
-        Page<TicketResponse> ticketResponses = ticketService.getHistory(page, size);
+    public ResponseEntity<Page<TicketResponse>> getHistory(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size){
+        Long userId = userDetails.getUser().getId();
+        String role = userDetails.getAuthorities().iterator().next().getAuthority();
+        Page<TicketResponse> ticketResponses = ticketService.getHistory(userId, role, page, size);
         return ResponseEntity.ok(ticketResponses);
     }
 
@@ -83,5 +88,11 @@ public class TicketController {
         ticketService.deletedTicket(id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    // dashboard stats
+    @GetMapping("/stats")
+    public ResponseEntity<com.zaby.helpdesk.dto.response.DashboardStatsResponse> getStats(){
+        return ResponseEntity.ok(ticketService.getDashboardStats());
     }
 }
