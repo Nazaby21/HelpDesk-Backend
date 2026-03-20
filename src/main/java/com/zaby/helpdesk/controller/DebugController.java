@@ -1,6 +1,5 @@
 package com.zaby.helpdesk.controller;
 
-import com.zaby.helpdesk.model.Ticket;
 import com.zaby.helpdesk.repository.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import com.zaby.helpdesk.service.TicketService;

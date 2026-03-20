@@ -3,7 +3,6 @@ package com.zaby.helpdesk.mapper;
 import com.zaby.helpdesk.dto.request.CategoryRequest;
 import com.zaby.helpdesk.dto.response.CategoryResponse;
 import com.zaby.helpdesk.model.Category;
-import com.zaby.helpdesk.model.Department;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")

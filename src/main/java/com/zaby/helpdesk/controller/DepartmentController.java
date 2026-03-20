@@ -2,8 +2,6 @@ package com.zaby.helpdesk.controller;
 
 import com.zaby.helpdesk.dto.request.DepartmentRequest;
 import com.zaby.helpdesk.dto.response.DepartmentResponse;
-import com.zaby.helpdesk.dto.response.TicketResponse;
-import com.zaby.helpdesk.dto.response.UserResponse;
 import com.zaby.helpdesk.service.DepartmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

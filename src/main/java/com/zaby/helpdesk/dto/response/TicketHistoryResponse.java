@@ -1,7 +1,6 @@
 package com.zaby.helpdesk.dto.response;
 
 import com.zaby.helpdesk.enumeration.Action;
-import com.zaby.helpdesk.model.Ticket;
 
 import java.time.LocalDateTime;
 

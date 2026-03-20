@@ -3,7 +3,6 @@ package com.zaby.helpdesk.controller;
 import com.zaby.helpdesk.dto.request.LoginRequest;
 import com.zaby.helpdesk.dto.request.RefreshTokenRequest;
 import com.zaby.helpdesk.dto.response.AuthResponse;
-import com.zaby.helpdesk.repository.RefreshTokenRepository;
 import com.zaby.helpdesk.security.CustomUserDetails;
 import com.zaby.helpdesk.security.JwtService;
 import com.zaby.helpdesk.security.RefreshTokenService;
