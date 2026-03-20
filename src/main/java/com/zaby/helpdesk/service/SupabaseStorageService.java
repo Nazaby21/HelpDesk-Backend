@@ -57,7 +57,15 @@ public class SupabaseStorageService {
 
             try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
                 if (response.getCode() >= 400) {
-                    throw new IOException("Failed to upload to Supabase: HTTP " + response.getCode() + " " + response.getReasonPhrase());
+                    String errorBody = "No error body";
+                    if (response.getEntity() != null) {
+                        try {
+                            errorBody = org.apache.hc.core5.http.io.entity.EntityUtils.toString(response.getEntity());
+                        } catch (org.apache.hc.core5.http.ParseException e) {
+                            errorBody = "Failed to parse error body";
+                        }
+                    }
+                    throw new IOException("Failed to upload to Supabase: HTTP " + response.getCode() + " - " + errorBody);
                 }
             }
         }
