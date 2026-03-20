@@ -15,7 +15,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // ✅ change from /api/**
-                        .allowedOrigins("http://localhost:3000", "https://helpdesk-backend-production-2244.up.railway.app")
+                        .allowedOrigins("http://localhost:3000", "https://helpdesk-frontend-production-dff3.up.railway.app")
                         .allowedMethods("*")
                         .allowedHeaders("*")
                         .allowCredentials(true);
