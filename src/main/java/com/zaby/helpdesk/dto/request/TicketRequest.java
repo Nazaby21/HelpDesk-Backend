@@ -3,6 +3,7 @@ package com.zaby.helpdesk.dto.request;
 import com.zaby.helpdesk.enumeration.Priority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 
 public record TicketRequest (
         @NotBlank
@@ -14,5 +15,5 @@ public record TicketRequest (
         Long categoryId,
         Long subCategoryId,
         Long assignedTo,
-        String imageUrl
+        List<String> imageUrls
 ){}

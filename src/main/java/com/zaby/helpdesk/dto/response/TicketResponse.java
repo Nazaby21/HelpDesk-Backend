@@ -26,5 +26,5 @@ public record TicketResponse (
         LocalDateTime createdAt,
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime completedAt,
-        String imageUrl
+        List<String> imageUrls
 ){}

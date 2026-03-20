@@ -46,8 +46,10 @@ public class Ticket extends AuditableCustom {
     @JoinColumn(name = "sub_category_id")
     private Category subCategory;
 
-    @Column(name = "image_url", columnDefinition = "TEXT")
-    private String imageUrl;
+    @ElementCollection
+    @CollectionTable(name = "ticket_images", joinColumns = @JoinColumn(name = "ticket_id"))
+    @Column(name = "image_url")
+    private List<String> imageUrls = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to")
