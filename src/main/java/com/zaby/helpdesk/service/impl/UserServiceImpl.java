@@ -54,6 +54,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setFirstName(userRequest.firstName());
         user.setLastName(userRequest.lastName());
+        user.setEmail(userRequest.email());
         user.setPhoneNumber(userRequest.phoneNumber());
         user.setImageUrl(userRequest.imageUrl());
         user.setRole(userRequest.role());
@@ -64,7 +65,7 @@ public class UserServiceImpl implements UserService {
 
         user.setDepartment(department);
 
-        if(userRequest.password() != null){
+        if(userRequest.password() != null && !userRequest.password().trim().isEmpty()){
             user.setPassword(passwordEncoder.encode(userRequest.password()));
         }
 
