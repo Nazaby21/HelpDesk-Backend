@@ -17,4 +17,8 @@ public interface TicketService {
     Page<TicketResponse>getHistory(Long userId, String role, int page, int size);
     Page<TicketResponse>getMyTickets(Long userId, int page, int size);
     DashboardStatsResponse getDashboardStats();
+    
+    com.zaby.helpdesk.dto.response.MonthlyChartResponse getMonthlyStats(int year);
+
+    org.springframework.data.domain.Page<com.zaby.helpdesk.dto.response.NotificationResponse> getActivityFeed(Long userId, String role, int page, int size);
 }

@@ -15,5 +15,9 @@ public record UserResponse (
         Long departmentId,
         String departmentName,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        Long ticketsCreated,
+        Long ticketsAssigned,
+        Long ticketsResolved,
+        Long ticketsOpen
 ){}

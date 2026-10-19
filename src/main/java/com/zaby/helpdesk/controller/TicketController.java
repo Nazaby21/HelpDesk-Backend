@@ -95,4 +95,27 @@ public class TicketController {
     public ResponseEntity<com.zaby.helpdesk.dto.response.DashboardStatsResponse> getStats(){
         return ResponseEntity.ok(ticketService.getDashboardStats());
     }
+
+    // monthly stats
+    @GetMapping("/stats/monthly")
+    public ResponseEntity<com.zaby.helpdesk.dto.response.MonthlyChartResponse> getMonthlyStats(@RequestParam(required = false) Integer year){
+        if (year == null) {
+            year = java.time.Year.now().getValue();
+        }
+        return ResponseEntity.ok(ticketService.getMonthlyStats(year));
+    }
+    
+    // activity feed
+    @GetMapping("/activity")
+    public ResponseEntity<org.springframework.data.domain.Page<com.zaby.helpdesk.dto.response.NotificationResponse>> getActivityFeed(
+            org.springframework.security.core.Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUser().getId();
+        String role = authentication.getAuthorities().iterator().next().getAuthority();
+        
+        return ResponseEntity.ok(ticketService.getActivityFeed(userId, role, page, size));
+    }
 }

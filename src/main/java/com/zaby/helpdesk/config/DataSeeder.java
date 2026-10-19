@@ -68,12 +68,4 @@ public class DataSeeder implements CommandLineRunner {
 
             userRepository.save(admin);
             log.info("✅ Seeded admin user: {} / admin123", adminEmail);
-        } else {
-            // Ensure password is correct (may have been corrupted in a previous failed deploy)
-            User admin = existingAdmin.get();
-            admin.setPassword(passwordEncoder.encode("admin1234"));
-            userRepository.save(admin);
-            log.info("ℹ️ Admin user already exists, password reset to default.");
-        }
-    }
-}
+} else { log.info("Admin user already exists."); } } }

@@ -325,5 +325,59 @@ public class TicketServiceImpl implements TicketService {
                 total, pending, inProgress, completed, totalUsers
         );
     }
+    @Override
+    public com.zaby.helpdesk.dto.response.MonthlyChartResponse getMonthlyStats(int year) {
+        java.util.List<Object[]> results = ticketRepository.countTicketsByMonthAndStatus(year);
+        long[] received = new long[12];
+        long[] due = new long[12];
+        
+        for (Object[] row : results) {
+            int month = ((Number) row[0]).intValue();
+            Status status = (Status) row[1];
+            long count = ((Number) row[2]).longValue();
+            
+            if (month >= 1 && month <= 12) {
+                if (status == Status.COMPLETED) {
+                    received[month - 1] += count;
+                } else if (status == Status.PENDING || status == Status.IN_PROGRESS) {
+                    due[month - 1] += count;
+                }
+            }
+        }
+        
+        return new com.zaby.helpdesk.dto.response.MonthlyChartResponse(
+                java.util.Arrays.stream(received).boxed().toList(),
+                java.util.Arrays.stream(due).boxed().toList()
+        );
+    }
 
+    @Override
+    public org.springframework.data.domain.Page<com.zaby.helpdesk.dto.response.NotificationResponse> getActivityFeed(Long userId, String role, int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        org.springframework.data.domain.Page<com.zaby.helpdesk.model.TicketHistory> history;
+        
+        if ("ROLE_USER".equals(role)) {
+            history = ticketHistoryRepository.findByTicketCreatedByOrderByPerformAtDesc(userId, pageable);
+        } else if ("ROLE_TECHNICIAN".equals(role)) {
+            history = ticketHistoryRepository.findByTicketAssignedToIdOrderByPerformAtDesc(userId, pageable);
+        } else {
+            history = ticketHistoryRepository.findAllByOrderByPerformAtDesc(pageable);
+        }
+        
+        return history.map(h -> {
+            String title = "Ticket " + h.getAction();
+            String subTitle = "Ticket #" + h.getTicket().getId() + ": " + h.getTicket().getTicketTitle();
+            String image = h.getPerformedBy() != null ? h.getPerformedBy().getImageUrl() : "/images/user/user-01.png";
+            if (image == null) {
+                image = "/images/user/user-01.png";
+            }
+            return new com.zaby.helpdesk.dto.response.NotificationResponse(
+                    h.getId(),
+                    image,
+                    title,
+                    subTitle,
+                    h.getPerformAt()
+            );
+        });
+    }
 }

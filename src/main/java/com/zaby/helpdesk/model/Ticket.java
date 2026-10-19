@@ -38,11 +38,11 @@ public class Ticket extends AuditableCustom {
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
     private List<TicketHistory> ticketHistory = new ArrayList<>();
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "sub_category_id")
     private Category subCategory;
 

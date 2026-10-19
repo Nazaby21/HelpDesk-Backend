@@ -5,9 +5,12 @@ import com.zaby.helpdesk.dto.response.CategoryResponse;
 import com.zaby.helpdesk.mapper.CategoryMapper;
 import com.zaby.helpdesk.model.Category;
 import com.zaby.helpdesk.repository.CategoryRepository;
+import com.zaby.helpdesk.repository.TicketRepository;
 import com.zaby.helpdesk.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.zaby.helpdesk.exception.ResourceNotFoundException;
+import com.zaby.helpdesk.exception.BusinessException;
 
 import java.util.List;
 
@@ -16,6 +19,7 @@ import java.util.List;
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final TicketRepository ticketRepository;
 
     @Override
     public CategoryResponse createCategory(CategoryRequest categoryRequest) {
@@ -23,7 +27,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         if (categoryRequest.parentId() != null) {
             Category parent = categoryRepository.findById(categoryRequest.parentId())
-                    .orElseThrow(() -> new RuntimeException("Parent Category not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Parent Category not found"));
             category.setParent(parent);
         }
 
@@ -34,7 +38,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponse updateCategory(Long id, CategoryRequest categoryRequest) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
         category.setName(categoryRequest.name());
         category.setDescription(categoryRequest.description());
@@ -42,10 +46,10 @@ public class CategoryServiceImpl implements CategoryService {
         if (categoryRequest.parentId() != null) {
             // Prevent circular dependency (a category cannot be its own parent)
             if (id.equals(categoryRequest.parentId())) {
-                throw new RuntimeException("A category cannot be its own parent");
+                throw new BusinessException("A category cannot be its own parent");
             }
             Category parent = categoryRepository.findById(categoryRequest.parentId())
-                    .orElseThrow(() -> new RuntimeException("Parent Category not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Parent Category not found"));
             category.setParent(parent);
         } else {
             category.setParent(null); // Clear parent if not provided
@@ -58,7 +62,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponse getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
         return categoryMapper.toCatogoryResponse(category);
     }
 
@@ -73,7 +77,13 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+                
+        long ticketsCount = ticketRepository.countTicketsByCategoryId(id);
+        if (ticketsCount > 0) {
+            throw new BusinessException(String.format("Cannot delete: used by %d tickets", ticketsCount));
+        }
+        
         categoryRepository.delete(category);
     }
 }
