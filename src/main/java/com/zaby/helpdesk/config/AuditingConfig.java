@@ -15,16 +15,6 @@ import java.util.Optional;
 public class AuditingConfig {
     @Bean
     public AuditorAware<Long> auditorProvider() {
-//        return () -> {
-//            Authentication authentication =
-//                    SecurityContextHolder.getContext().getAuthentication();
-//
-//            if (authentication == null || !authentication.isAuthenticated()) {
-//                return Optional.empty();
-//            }
-//
-//            return Optional.of((User) authentication.getPrincipal());
-//        };
         return () -> {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
