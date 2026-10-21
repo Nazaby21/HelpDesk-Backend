@@ -1,6 +1,5 @@
 package com.zaby.helpdesk.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaby.helpdesk.enumeration.Priority;
 import com.zaby.helpdesk.enumeration.Role;
 import com.zaby.helpdesk.enumeration.Status;
@@ -23,8 +22,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.zaby.helpdesk.exception.GlobalExceptionHandler;
-
-import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

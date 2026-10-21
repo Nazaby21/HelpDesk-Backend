@@ -4,7 +4,6 @@ import com.zaby.helpdesk.enumeration.Action;
 import com.zaby.helpdesk.enumeration.Priority;
 import com.zaby.helpdesk.enumeration.Role;
 import com.zaby.helpdesk.enumeration.Status;
-import com.zaby.helpdesk.exception.GlobalExceptionHandler;
 import com.zaby.helpdesk.model.Category;
 import com.zaby.helpdesk.model.Department;
 import com.zaby.helpdesk.model.Ticket;

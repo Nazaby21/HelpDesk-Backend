@@ -1,6 +1,5 @@
 package com.zaby.helpdesk.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaby.helpdesk.enumeration.Priority;
 import com.zaby.helpdesk.enumeration.Role;
 import com.zaby.helpdesk.enumeration.Status;
@@ -26,7 +25,6 @@ import com.zaby.helpdesk.exception.GlobalExceptionHandler;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.data.domain.AuditorAware;
 
-import java.util.List;
 import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.*;

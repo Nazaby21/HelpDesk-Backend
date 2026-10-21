@@ -2,7 +2,6 @@ package com.zaby.helpdesk.service.impl;
 
 import com.zaby.helpdesk.dto.response.TicketStatusLogResponse;
 import com.zaby.helpdesk.mapper.TicketStatusLogMapper;
-import com.zaby.helpdesk.model.TicketStatusLog;
 import com.zaby.helpdesk.repository.TicketStatusLogRepository;
 import com.zaby.helpdesk.service.TicketStatusLogService;
 import lombok.RequiredArgsConstructor;

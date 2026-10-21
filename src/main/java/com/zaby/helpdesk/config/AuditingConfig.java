@@ -1,7 +1,5 @@
 package com.zaby.helpdesk.config;
 
-import com.zaby.helpdesk.model.User;
-import com.zaby.helpdesk.repository.UserRepository;
 import com.zaby.helpdesk.security.CustomUserDetails;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

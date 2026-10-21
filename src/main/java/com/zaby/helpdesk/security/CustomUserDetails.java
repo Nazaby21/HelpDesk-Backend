@@ -2,7 +2,6 @@ package com.zaby.helpdesk.security;
 
 import com.zaby.helpdesk.model.User;
 import lombok.Getter;
-import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

@@ -1,6 +1,5 @@
 package com.zaby.helpdesk.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaby.helpdesk.model.Category;
 import com.zaby.helpdesk.model.Ticket;
 import com.zaby.helpdesk.repository.CategoryRepository;
@@ -10,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
