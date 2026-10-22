@@ -1,7 +1,5 @@
 package com.zaby.helpdesk.config;
 
-import com.zaby.helpdesk.model.User;
-import com.zaby.helpdesk.repository.UserRepository;
 import com.zaby.helpdesk.security.CustomUserDetails;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,16 +15,6 @@ import java.util.Optional;
 public class AuditingConfig {
     @Bean
     public AuditorAware<Long> auditorProvider() {
-//        return () -> {
-//            Authentication authentication =
-//                    SecurityContextHolder.getContext().getAuthentication();
-//
-//            if (authentication == null || !authentication.isAuthenticated()) {
-//                return Optional.empty();
-//            }
-//
-//            return Optional.of((User) authentication.getPrincipal());
-//        };
         return () -> {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

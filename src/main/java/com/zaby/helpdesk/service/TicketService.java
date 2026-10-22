@@ -5,7 +5,6 @@ import com.zaby.helpdesk.dto.response.DashboardStatsResponse;
 import com.zaby.helpdesk.dto.response.TicketResponse;
 import com.zaby.helpdesk.enumeration.Status;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 
 public interface TicketService {
     TicketResponse createTicket(TicketRequest ticketRequest);
