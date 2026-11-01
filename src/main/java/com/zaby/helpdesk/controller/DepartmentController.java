@@ -3,6 +3,7 @@ package com.zaby.helpdesk.controller;
 import com.zaby.helpdesk.dto.request.DepartmentRequest;
 import com.zaby.helpdesk.dto.response.DepartmentResponse;
 import com.zaby.helpdesk.service.DepartmentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,14 +19,14 @@ public class DepartmentController {
 
     // create department
     @PostMapping
-    public ResponseEntity<DepartmentResponse> createDepartment(@RequestBody DepartmentRequest departmentRequest){
+    public ResponseEntity<DepartmentResponse> createDepartment(@Valid @RequestBody DepartmentRequest departmentRequest){
         DepartmentResponse departmentResponse = departmentService.createDepartment(departmentRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(departmentResponse);
     }
 
     // update department
     @PutMapping("{id}")
-    public ResponseEntity<DepartmentResponse> updateDepartment(@RequestBody DepartmentRequest departmentRequest, @PathVariable Long id){
+    public ResponseEntity<DepartmentResponse> updateDepartment(@Valid @RequestBody DepartmentRequest departmentRequest, @PathVariable Long id){
         DepartmentResponse departmentResponse = departmentService.updateDepartment(id, departmentRequest);
         return ResponseEntity.ok(departmentResponse);
     }

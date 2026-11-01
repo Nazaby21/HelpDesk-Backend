@@ -1,9 +1,14 @@
 package com.zaby.helpdesk.service.impl;
 
 import com.zaby.helpdesk.dto.request.TicketRequest;
+import com.zaby.helpdesk.dto.response.DashboardStatsResponse;
+import com.zaby.helpdesk.dto.response.MonthlyChartResponse;
+import com.zaby.helpdesk.dto.response.NotificationResponse;
 import com.zaby.helpdesk.dto.response.TicketResponse;
 import com.zaby.helpdesk.enumeration.Action;
+import com.zaby.helpdesk.enumeration.Priority;
 import com.zaby.helpdesk.enumeration.Status;
+import com.zaby.helpdesk.exception.ResourceNotFoundException;
 import com.zaby.helpdesk.mapper.TicketMapper;
 import com.zaby.helpdesk.model.*;
 import com.zaby.helpdesk.repository.CategoryRepository;
@@ -11,21 +16,27 @@ import com.zaby.helpdesk.repository.TicketHistoryRepository;
 import com.zaby.helpdesk.repository.TicketRepository;
 import com.zaby.helpdesk.repository.UserRepository;
 import com.zaby.helpdesk.service.TicketService;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TicketServiceImpl implements TicketService {
-
 
     private final TicketMapper ticketMapper;
     private final TicketRepository ticketRepository;
@@ -94,20 +105,20 @@ public class TicketServiceImpl implements TicketService {
 
         // set category
         Category category = categoryRepository.findById(ticketRequest.categoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
         ticket.setCategory(category);
 
         // set sub category
         if (ticketRequest.subCategoryId() != null) {
             Category subCategory = categoryRepository.findById(ticketRequest.subCategoryId())
-                    .orElseThrow(() -> new RuntimeException("SubCategory not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("SubCategory not found"));
             ticket.setSubCategory(subCategory);
         }
 
         // set assigned user
         if (ticketRequest.assignedTo() != null) {
             User assignedUser = userRepository.findById(ticketRequest.assignedTo())
-                    .orElseThrow(() -> new RuntimeException("User Not Found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
             ticket.setAssignedTo(assignedUser);
         }
 
@@ -122,7 +133,7 @@ public class TicketServiceImpl implements TicketService {
         ticket.getTicketStatusLog().add(ticketStatusLog); // add to ticket
 
         // create initial history
-        TicketHistory  ticketHistory = new TicketHistory();
+        TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);
         ticketHistory.setAction(Action.CREATE);
         ticketHistory.setComment("Ticket Created");
@@ -140,7 +151,7 @@ public class TicketServiceImpl implements TicketService {
 
         // check ticket
         Ticket ticket = ticketRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ticket Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket Not Found"));
 
         if (ticket.isDeleted()) {
             throw new IllegalStateException("Deleted ticket cannot be updated");
@@ -159,21 +170,21 @@ public class TicketServiceImpl implements TicketService {
         // Update category if provided
         if (ticketRequest.categoryId() != null) {
             Category category = categoryRepository.findById(ticketRequest.categoryId())
-                    .orElseThrow(() -> new RuntimeException("Category Not Found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
             ticket.setCategory(category);
         }
 
         // Update sub category if provided
         if (ticketRequest.subCategoryId() != null) {
             Category subCategory = categoryRepository.findById(ticketRequest.subCategoryId())
-                    .orElseThrow(() -> new RuntimeException("SubCategory Not Found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("SubCategory Not Found"));
             ticket.setSubCategory(subCategory);
         }
 
         // Update assigned user if provided
         if (ticketRequest.assignedTo() != null) {
             User assignedUser = userRepository.findById(ticketRequest.assignedTo())
-                    .orElseThrow(() -> new RuntimeException("User Not Found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
             ticket.setAssignedTo(assignedUser);
         }
 
@@ -194,7 +205,7 @@ public class TicketServiceImpl implements TicketService {
     @Transactional
     public TicketResponse updateTicketStatus(Long id, Status status, String remark, Long assignedUserId) {
         Ticket ticket = ticketRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ticket Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket Not Found"));
 
         Status currentStatus = ticket.getStatus();
 
@@ -216,7 +227,7 @@ public class TicketServiceImpl implements TicketService {
         // auto-assign technician when accepting (PENDING -> IN_PROGRESS)
         if (status == Status.IN_PROGRESS && ticket.getAssignedTo() == null && assignedUserId != null) {
             User technician = userRepository.findById(assignedUserId)
-                    .orElseThrow(() -> new RuntimeException("Technician Not Found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Technician Not Found"));
             ticket.setAssignedTo(technician);
         }
 
@@ -245,8 +256,8 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public TicketResponse deletedTicket(Long id) {
-        Ticket  ticket = ticketRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new RuntimeException("Ticket Not Found"));
+        Ticket ticket = ticketRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket Not Found"));
 
         if (ticket.getStatus() == Status.COMPLETED) {
             throw new IllegalArgumentException("Completed ticket cannot be deleted");
@@ -269,73 +280,115 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public TicketResponse getById(Long id) {
-        Ticket  ticket = ticketRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new RuntimeException("Ticket Not Found"));
+        Ticket ticket = ticketRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket Not Found"));
 
         return enrichResponse(ticket, ticketMapper.toTicketResponse(ticket));
     }
 
+    private Specification<Ticket> buildSpecification(
+            List<Status> defaultStatuses,
+            Status status,
+            Priority priority,
+            String search,
+            Long createdBy,
+            Long assignedTo
+    ) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.isFalse(root.get("deleted")));
+
+            if (status != null) {
+                predicates.add(cb.equal(root.get("status"), status));
+            } else if (defaultStatuses != null && !defaultStatuses.isEmpty()) {
+                predicates.add(root.get("status").in(defaultStatuses));
+            }
+
+            if (priority != null) {
+                predicates.add(cb.equal(root.get("priority"), priority));
+            }
+
+            if (search != null && !search.trim().isEmpty()) {
+                String pattern = "%" + search.trim().toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("ticketTitle")), pattern),
+                        cb.like(cb.lower(root.get("description")), pattern)
+                ));
+            }
+
+            if (createdBy != null) {
+                predicates.add(cb.equal(root.get("createdBy"), createdBy));
+            }
+
+            if (assignedTo != null) {
+                Join<Ticket, User> assigned = root.join("assignedTo", JoinType.LEFT);
+                predicates.add(cb.equal(assigned.get("id"), assignedTo));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
     @Override
-    public Page<TicketResponse> getAll(int page, int size) {
+    public Page<TicketResponse> getAll(int page, int size, Status status, Priority priority, String search) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Ticket> tickets = ticketRepository.findByStatusInAndDeletedFalse(
-                List.of(Status.PENDING, Status.IN_PROGRESS), pageable);
+        Specification<Ticket> spec = buildSpecification(
+                List.of(Status.PENDING, Status.IN_PROGRESS),
+                status, priority, search, null, null
+        );
+        Page<Ticket> tickets = ticketRepository.findAll(spec, pageable);
         return tickets.map(t -> enrichResponse(t, ticketMapper.toTicketResponse(t)));
     }
 
     @Override
-    public Page<TicketResponse> getHistory(Long userId, String role, int page, int size) {
+    public Page<TicketResponse> getHistory(Long userId, String role, int page, int size, Status status, Priority priority, String search) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Ticket> tickets;
+        Long createdBy = "ROLE_USER".equals(role) ? userId : null;
+        Long assignedTo = "ROLE_TECHNICIAN".equals(role) ? userId : null;
 
-        if ("ROLE_USER".equals(role)) {
-            // Users see their own completed tickets (tickets they created)
-            tickets = ticketRepository.findByCreatedByAndStatusInAndDeletedFalse(
-                    userId, List.of(Status.COMPLETED), pageable);
-        } else if ("ROLE_TECHNICIAN".equals(role)) {
-            // Technicians see completed tickets that were assigned to them
-            tickets = ticketRepository.findByAssignedToIdAndStatusInAndDeletedFalse(
-                    userId, List.of(Status.COMPLETED), pageable);
-        } else {
-            // Admin sees all completed tickets
-            tickets = ticketRepository.findByStatusInAndDeletedFalse(
-                    List.of(Status.COMPLETED), pageable);
-        }
-
+        Specification<Ticket> spec = buildSpecification(
+                List.of(Status.COMPLETED),
+                status, priority, search, createdBy, assignedTo
+        );
+        Page<Ticket> tickets = ticketRepository.findAll(spec, pageable);
         return tickets.map(t -> enrichResponse(t, ticketMapper.toTicketResponse(t)));
     }
 
     @Override
-    public Page<TicketResponse> getMyTickets(Long userId, int page, int size) {
+    public Page<TicketResponse> getMyTickets(Long userId, int page, int size, Status status, Priority priority, String search) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Ticket> tickets = ticketRepository.findByCreatedByAndStatusInAndDeletedFalse(
-                userId, List.of(Status.PENDING, Status.IN_PROGRESS), pageable);
+        Specification<Ticket> spec = buildSpecification(
+                List.of(Status.PENDING, Status.IN_PROGRESS),
+                status, priority, search, userId, null
+        );
+        Page<Ticket> tickets = ticketRepository.findAll(spec, pageable);
         return tickets.map(t -> enrichResponse(t, ticketMapper.toTicketResponse(t)));
     }
 
     @Override
-    public com.zaby.helpdesk.dto.response.DashboardStatsResponse getDashboardStats() {
+    public DashboardStatsResponse getDashboardStats() {
         long total = ticketRepository.countByDeletedFalse();
         long pending = ticketRepository.countByStatusAndDeletedFalse(Status.PENDING);
         long inProgress = ticketRepository.countByStatusAndDeletedFalse(Status.IN_PROGRESS);
         long completed = ticketRepository.countByStatusAndDeletedFalse(Status.COMPLETED);
         long totalUsers = userRepository.count();
 
-        return new com.zaby.helpdesk.dto.response.DashboardStatsResponse(
+        return new DashboardStatsResponse(
                 total, pending, inProgress, completed, totalUsers
         );
     }
+
     @Override
-    public com.zaby.helpdesk.dto.response.MonthlyChartResponse getMonthlyStats(int year) {
-        java.util.List<Object[]> results = ticketRepository.countTicketsByMonthAndStatus(year);
+    public MonthlyChartResponse getMonthlyStats(int year) {
+        List<Object[]> results = ticketRepository.countTicketsByMonthAndStatus(year);
         long[] received = new long[12];
         long[] due = new long[12];
-        
+
         for (Object[] row : results) {
             int month = ((Number) row[0]).intValue();
             Status status = (Status) row[1];
             long count = ((Number) row[2]).longValue();
-            
+
             if (month >= 1 && month <= 12) {
                 if (status == Status.COMPLETED) {
                     received[month - 1] += count;
@@ -344,18 +397,18 @@ public class TicketServiceImpl implements TicketService {
                 }
             }
         }
-        
-        return new com.zaby.helpdesk.dto.response.MonthlyChartResponse(
-                java.util.Arrays.stream(received).boxed().toList(),
-                java.util.Arrays.stream(due).boxed().toList()
+
+        return new MonthlyChartResponse(
+                Arrays.stream(received).boxed().toList(),
+                Arrays.stream(due).boxed().toList()
         );
     }
 
     @Override
-    public org.springframework.data.domain.Page<com.zaby.helpdesk.dto.response.NotificationResponse> getActivityFeed(Long userId, String role, int page, int size) {
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
-        org.springframework.data.domain.Page<com.zaby.helpdesk.model.TicketHistory> history;
-        
+    public Page<NotificationResponse> getActivityFeed(Long userId, String role, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<TicketHistory> history;
+
         if ("ROLE_USER".equals(role)) {
             history = ticketHistoryRepository.findByTicketCreatedByOrderByPerformAtDesc(userId, pageable);
         } else if ("ROLE_TECHNICIAN".equals(role)) {
@@ -363,7 +416,7 @@ public class TicketServiceImpl implements TicketService {
         } else {
             history = ticketHistoryRepository.findAllByOrderByPerformAtDesc(pageable);
         }
-        
+
         return history.map(h -> {
             String title = "Ticket " + h.getAction();
             String subTitle = "Ticket #" + h.getTicket().getId() + ": " + h.getTicket().getTicketTitle();
@@ -371,7 +424,7 @@ public class TicketServiceImpl implements TicketService {
             if (image == null) {
                 image = "/images/user/user-01.png";
             }
-            return new com.zaby.helpdesk.dto.response.NotificationResponse(
+            return new NotificationResponse(
                     h.getId(),
                     image,
                     title,

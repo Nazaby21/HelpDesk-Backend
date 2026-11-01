@@ -48,10 +48,12 @@ public class AuthServiceImpl implements AuthService {
 
         // Return user info + access token + refresh token in body
         return new AuthResponse(
+                userDetails.getUser().getId(),
                 userDetails.getUsername(), // email
                 "Login successful",        // message
                 userDetails.getFirstName(),
                 userDetails.getLastName(),
+                userDetails.getUser().getImageUrl(),
                 userDetails.getDepartmentId(),
                 userDetails.getUser().getRole(),
                 accessToken,

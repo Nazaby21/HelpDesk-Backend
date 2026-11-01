@@ -2,6 +2,10 @@ package com.zaby.helpdesk.service.impl;
 
 import com.zaby.helpdesk.dto.request.UserRequest;
 import com.zaby.helpdesk.dto.response.UserResponse;
+import com.zaby.helpdesk.enumeration.Role;
+import com.zaby.helpdesk.enumeration.Status;
+import com.zaby.helpdesk.exception.BusinessException;
+import com.zaby.helpdesk.exception.ResourceNotFoundException;
 import com.zaby.helpdesk.mapper.UserMapper;
 import com.zaby.helpdesk.model.Department;
 import com.zaby.helpdesk.model.User;
@@ -10,6 +14,8 @@ import com.zaby.helpdesk.repository.UserRepository;
 import com.zaby.helpdesk.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,23 +34,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse createUser(UserRequest userRequest) {
-        // duplicate email
         if (userRepository.existsByEmail(userRequest.email())){
-            throw new RuntimeException("Email already exists");
+            throw new BusinessException("Email already exists");
         }
 
-        // DTO -> Entity
         User user = userMapper.toEntity(userRequest);
 
-        // encode password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // set department
         Department department = departmentRepository.findById(userRequest.departmentId())
-                .orElseThrow(() -> new RuntimeException("Department not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
         user.setDepartment(department);
 
-        // save
         userRepository.save(user);
         return userMapper.toResponse(user);
     }
@@ -52,7 +53,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateUser(long id, UserRequest userRequest) {
         User user = userRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setFirstName(userRequest.firstName());
         user.setLastName(userRequest.lastName());
         user.setEmail(userRequest.email());
@@ -60,9 +61,8 @@ public class UserServiceImpl implements UserService {
         user.setImageUrl(userRequest.imageUrl());
         user.setRole(userRequest.role());
 
-        // find department
         Department department = departmentRepository.findById(userRequest.departmentId())
-                .orElseThrow(() -> new RuntimeException("Department not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
 
         user.setDepartment(department);
 
@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getUserById(long id) {
         User user =  userRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         UserResponse response = userMapper.toResponse(user);
         
@@ -85,17 +85,14 @@ public class UserServiceImpl implements UserService {
         long assigned = ticketRepository.countByAssignedToIdAndDeletedFalse(id);
         long resolved = 0;
         long open = 0;
-        
-        java.util.List<com.zaby.helpdesk.enumeration.Status> openStatuses = java.util.List.of(
-            com.zaby.helpdesk.enumeration.Status.PENDING, 
-            com.zaby.helpdesk.enumeration.Status.IN_PROGRESS
-        );
 
-        if (user.getRole() == com.zaby.helpdesk.enumeration.Role.USER) {
-            resolved = ticketRepository.countByCreatedByAndStatusAndDeletedFalse(id, com.zaby.helpdesk.enumeration.Status.COMPLETED);
+        List<Status> openStatuses= List.of(Status.PENDING, Status.IN_PROGRESS);
+
+        if (user.getRole() == Role.USER) {
+            resolved = ticketRepository.countByCreatedByAndStatusAndDeletedFalse(id,Status.COMPLETED);
             open = ticketRepository.countByCreatedByAndStatusInAndDeletedFalse(id, openStatuses);
         } else {
-            resolved = ticketRepository.countByAssignedToIdAndStatusAndDeletedFalse(id, com.zaby.helpdesk.enumeration.Status.COMPLETED);
+            resolved = ticketRepository.countByAssignedToIdAndStatusAndDeletedFalse(id, Status.COMPLETED);
             open = ticketRepository.countByAssignedToIdAndStatusInAndDeletedFalse(id, openStatuses);
         }
 
@@ -117,9 +114,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Page<UserResponse> getAllUsers(Pageable pageable) {
+        return userRepository.findAllByDeletedFalse(pageable)
+                .map(userMapper::toResponse);
+    }
+
+    @Override
     public UserResponse deleteUser(long id) {
         User user = userRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setDeleted(true);
         userRepository.save(user);
         return userMapper.toResponse(user);

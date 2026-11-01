@@ -43,7 +43,7 @@ public class DataSeeder implements CommandLineRunner {
             finance.setDescription("Finance & Accounting");
             departmentRepository.save(finance);
 
-            log.info("✅ Seeded default departments: IT, HR, Finance");
+            log.info("Seeded default departments: IT, HR, Finance");
         }
     }
 
@@ -67,5 +67,5 @@ public class DataSeeder implements CommandLineRunner {
             admin.setDepartment(itDept);
 
             userRepository.save(admin);
-            log.info("✅ Seeded admin user: {} / admin123", adminEmail);
+            log.info("Seeded admin user: {} / admin123", adminEmail);
 } else { log.info("Admin user already exists."); } } }

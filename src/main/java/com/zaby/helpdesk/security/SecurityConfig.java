@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,8 +15,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @Configuration
 @EnableWebSecurity
@@ -41,9 +40,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // disable CSRF because API is stateless
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Open endpoints (login)
+                        // Open endpoints (login, refresh, logout)
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/debug/**").permitAll()
+
+                        // OpenAPI & Swagger UI
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
                         // USER profile endpoint
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
@@ -54,7 +55,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/**").hasRole("ADMIN")
 
-                        // Ticket endpoints - note: plural /tickets not /ticket
+                        // Ticket endpoints
                         .requestMatchers("/api/v1/tickets").hasAnyRole("ADMIN", "USER", "TECHNICIAN")
                         .requestMatchers("/api/v1/tickets/**").hasAnyRole("ADMIN", "USER", "TECHNICIAN")
 
@@ -79,7 +80,7 @@ public class SecurityConfig {
                 )
                 // JWT filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                // Disable HTTP Basic Auth - JWT is used instead (Basic Auth causes browser popup)
+                // Disable HTTP Basic Auth
                 .httpBasic(basic -> basic.disable());
 
         return http.build();

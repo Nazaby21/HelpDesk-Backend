@@ -1,6 +1,5 @@
 package com.zaby.helpdesk.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.zaby.helpdesk.enumeration.Priority;
 import com.zaby.helpdesk.enumeration.Status;
 
@@ -22,9 +21,7 @@ public record TicketResponse (
         List<TicketStatusLogResponse> logs,
         Long createdBy,
         String createdByName,
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime createdAt,
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime completedAt,
         List<String> imageUrls
 ){}

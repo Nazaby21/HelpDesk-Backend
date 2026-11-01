@@ -3,6 +3,7 @@ package com.zaby.helpdesk.controller;
 import com.zaby.helpdesk.dto.request.CategoryRequest;
 import com.zaby.helpdesk.dto.response.CategoryResponse;
 import com.zaby.helpdesk.service.CategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,18 +18,18 @@ import java.util.List;
 public class CategoryController {
     private final CategoryService categoryService;
 
-    // create department
+    // create category
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
-    public ResponseEntity<CategoryResponse> createCategory(@RequestBody CategoryRequest categoryRequest) {
+    public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest categoryRequest) {
         CategoryResponse categoryResponse = categoryService.createCategory(categoryRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryResponse);
     }
 
-    // update department
+    // update category
     @PutMapping("{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TECHNICIAN')")
-    public ResponseEntity<CategoryResponse> updateCategory(@RequestBody CategoryRequest categoryRequest, @PathVariable Long id) {
+    public ResponseEntity<CategoryResponse> updateCategory(@Valid @RequestBody CategoryRequest categoryRequest, @PathVariable Long id) {
         CategoryResponse categoryResponse = categoryService.updateCategory(id, categoryRequest);
         return ResponseEntity.ok(categoryResponse);
     }

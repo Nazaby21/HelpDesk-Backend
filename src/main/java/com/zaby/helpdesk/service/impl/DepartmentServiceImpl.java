@@ -1,8 +1,8 @@
 package com.zaby.helpdesk.service.impl;
 
-
 import com.zaby.helpdesk.dto.request.DepartmentRequest;
 import com.zaby.helpdesk.dto.response.DepartmentResponse;
+import com.zaby.helpdesk.exception.ResourceNotFoundException;
 import com.zaby.helpdesk.mapper.DepartmentMapper;
 import com.zaby.helpdesk.model.Department;
 import com.zaby.helpdesk.repository.DepartmentRepository;
@@ -29,7 +29,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public DepartmentResponse updateDepartment(Long id, DepartmentRequest departmentRequest) {
         Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Department not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found with id: " + id));
 
         department.setName(departmentRequest.name());
         department.setDescription(departmentRequest.description());
@@ -41,7 +41,7 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public DepartmentResponse getDepartmentById(Long id) {
         Department department = departmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Department not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found with id: " + id));
         return departmentMapper.toDepartmentResponse(department);
     }
 
