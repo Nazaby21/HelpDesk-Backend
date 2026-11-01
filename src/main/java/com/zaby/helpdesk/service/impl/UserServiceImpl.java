@@ -42,9 +42,11 @@ public class UserServiceImpl implements UserService {
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        Department department = departmentRepository.findById(userRequest.departmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
-        user.setDepartment(department);
+        if (userRequest.departmentId() != null) {
+            Department department = departmentRepository.findById(userRequest.departmentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
+            user.setDepartment(department);
+        }
 
         userRepository.save(user);
         return userMapper.toResponse(user);
@@ -61,10 +63,13 @@ public class UserServiceImpl implements UserService {
         user.setImageUrl(userRequest.imageUrl());
         user.setRole(userRequest.role());
 
-        Department department = departmentRepository.findById(userRequest.departmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
-
-        user.setDepartment(department);
+        if (userRequest.departmentId() != null) {
+            Department department = departmentRepository.findById(userRequest.departmentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
+            user.setDepartment(department);
+        } else {
+            user.setDepartment(null);
+        }
 
         if(userRequest.password() != null && !userRequest.password().trim().isEmpty()){
             user.setPassword(passwordEncoder.encode(userRequest.password()));
@@ -72,6 +77,38 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
         return userMapper.toResponse(user);
+    }
+
+    @Override
+    public UserResponse updateCurrentUser(long id, java.util.Map<String, Object> updates) {
+        User user = userRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (updates.containsKey("firstName") && updates.get("firstName") != null) {
+            String firstName = updates.get("firstName").toString().trim();
+            if (!firstName.isEmpty()) user.setFirstName(firstName);
+        }
+        if (updates.containsKey("lastName") && updates.get("lastName") != null) {
+            String lastName = updates.get("lastName").toString().trim();
+            if (!lastName.isEmpty()) user.setLastName(lastName);
+        }
+        if (updates.containsKey("phoneNumber")) {
+            Object phone = updates.get("phoneNumber");
+            user.setPhoneNumber(phone != null && !phone.toString().trim().isEmpty() ? phone.toString().trim() : null);
+        }
+        if (updates.containsKey("imageUrl")) {
+            Object img = updates.get("imageUrl");
+            user.setImageUrl(img != null && !img.toString().trim().isEmpty() ? img.toString().trim() : null);
+        }
+        if (updates.containsKey("password") && updates.get("password") != null) {
+            String rawPassword = updates.get("password").toString().trim();
+            if (!rawPassword.isEmpty()) {
+                user.setPassword(passwordEncoder.encode(rawPassword));
+            }
+        }
+
+        userRepository.save(user);
+        return getUserById(id);
     }
 
     @Override

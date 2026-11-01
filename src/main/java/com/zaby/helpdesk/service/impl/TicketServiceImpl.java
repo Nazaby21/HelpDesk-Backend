@@ -188,6 +188,11 @@ public class TicketServiceImpl implements TicketService {
             ticket.setAssignedTo(assignedUser);
         }
 
+        // Update attachment image URLs if provided
+        if (ticketRequest.imageUrls() != null) {
+            ticket.setImageUrls(new ArrayList<>(ticketRequest.imageUrls()));
+        }
+
         // add history
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);

@@ -48,6 +48,7 @@ public class SecurityConfig {
 
                         // USER profile endpoint
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/me").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/users/me").authenticated()
 
                         // User management - only ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/**").hasRole("ADMIN")

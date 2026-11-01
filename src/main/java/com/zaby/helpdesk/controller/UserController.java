@@ -40,6 +40,16 @@ public class UserController {
         return ResponseEntity.ok(userResponse);
     }
 
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateCurrentUser(
+            Authentication authentication,
+            @RequestBody java.util.Map<String, Object> updates
+    ) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        UserResponse userResponse = userService.updateCurrentUser(userDetails.getUser().getId(), updates);
+        return ResponseEntity.ok(userResponse);
+    }
+
     // find user by id
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUser(@PathVariable Long id){
