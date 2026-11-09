@@ -71,7 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/categories/**").hasAnyRole("ADMIN", "TECHNICIAN")
 
                         // WebSocket handshake endpoint - must be open
-                        .requestMatchers("/ws-chat/**").permitAll()
+                        .requestMatchers("/ws-chat/**", "/ws/**").permitAll()
 
                         // Allow preflight requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

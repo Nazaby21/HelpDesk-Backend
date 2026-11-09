@@ -8,6 +8,8 @@ import com.zaby.helpdesk.dto.response.TicketResponse;
 import com.zaby.helpdesk.enumeration.Action;
 import com.zaby.helpdesk.enumeration.Priority;
 import com.zaby.helpdesk.enumeration.Status;
+import com.zaby.helpdesk.event.TicketCreatedEvent;
+import com.zaby.helpdesk.event.TicketResolvedEvent;
 import com.zaby.helpdesk.exception.ResourceNotFoundException;
 import com.zaby.helpdesk.mapper.TicketMapper;
 import com.zaby.helpdesk.model.*;
@@ -15,16 +17,21 @@ import com.zaby.helpdesk.repository.CategoryRepository;
 import com.zaby.helpdesk.repository.TicketHistoryRepository;
 import com.zaby.helpdesk.repository.TicketRepository;
 import com.zaby.helpdesk.repository.UserRepository;
+import com.zaby.helpdesk.security.CustomUserDetails;
 import com.zaby.helpdesk.service.TicketService;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,6 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -43,9 +51,10 @@ public class TicketServiceImpl implements TicketService {
     private final UserRepository userRepository;
     private final TicketHistoryRepository ticketHistoryRepository;
     private final CategoryRepository categoryRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final Map<Status, List<Status>> allowedTransitions = Map.of(
-            Status.PENDING, List.of(Status.IN_PROGRESS),
+            Status.PENDING, List.of(Status.IN_PROGRESS, Status.COMPLETED),
             Status.IN_PROGRESS, List.of(Status.COMPLETED),
             Status.COMPLETED, List.of()
     );
@@ -142,7 +151,48 @@ public class TicketServiceImpl implements TicketService {
         ticketHistoryRepository.save(ticketHistory);
 
         Ticket savedTicket = ticketRepository.save(ticket); // save ticket
-        return enrichResponse(savedTicket, ticketMapper.toTicketResponse(savedTicket));
+        TicketResponse enriched = enrichResponse(savedTicket, ticketMapper.toTicketResponse(savedTicket));
+
+        try {
+            Long creatorId = savedTicket.getCreatedBy() != null ? savedTicket.getCreatedBy() : resolveCurrentUserId();
+            String requesterName = enriched.createdByName() != null ? enriched.createdByName() : resolveCurrentUserName();
+            Long assignedId = savedTicket.getAssignedTo() != null ? savedTicket.getAssignedTo().getId() : null;
+            Long catId = savedTicket.getCategory() != null ? savedTicket.getCategory().getId() : null;
+            Long subCatId = savedTicket.getSubCategory() != null ? savedTicket.getSubCategory().getId() : null;
+
+            eventPublisher.publishEvent(new TicketCreatedEvent(
+                    savedTicket.getId(),
+                    savedTicket.getTicketTitle(),
+                    savedTicket.getPriority(),
+                    creatorId,
+                    requesterName,
+                    assignedId,
+                    catId,
+                    subCatId
+            ));
+        } catch (Exception ex) {
+            log.error("Failed to publish TicketCreatedEvent for ticketId={}", savedTicket.getId(), ex);
+        }
+
+        return enriched;
+    }
+
+    private Long resolveCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails cud && cud.getUser() != null) {
+            return cud.getUser().getId();
+        }
+        return null;
+    }
+
+    private String resolveCurrentUserName() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails cud && cud.getUser() != null) {
+            String full = ((cud.getUser().getFirstName() != null ? cud.getUser().getFirstName() : "") + " "
+                    + (cud.getUser().getLastName() != null ? cud.getUser().getLastName() : "")).trim();
+            return full.isEmpty() ? cud.getUsername() : full;
+        }
+        return "User";
     }
 
     @Override
@@ -237,14 +287,14 @@ public class TicketServiceImpl implements TicketService {
         }
 
         // create status log
-        TicketStatusLog log = new TicketStatusLog();
-        log.setTicket(ticket);
-        log.setFromStatus(currentStatus.name());
-        log.setToStatus(status.name());
-        log.setRemark(remark);
-        log.setChangedAt(LocalDateTime.now());
+        TicketStatusLog statusLog = new TicketStatusLog();
+        statusLog.setTicket(ticket);
+        statusLog.setFromStatus(currentStatus.name());
+        statusLog.setToStatus(status.name());
+        statusLog.setRemark(remark);
+        statusLog.setChangedAt(LocalDateTime.now());
 
-        ticket.getTicketStatusLog().add(log);
+        ticket.getTicketStatusLog().add(statusLog);
 
         // add history
         TicketHistory history = new TicketHistory();
@@ -255,8 +305,35 @@ public class TicketServiceImpl implements TicketService {
 
         ticket.getTicketHistory().add(history);
         Ticket savedTicket = ticketRepository.save(ticket);
+        TicketResponse enriched = enrichResponse(savedTicket, ticketMapper.toTicketResponse(savedTicket));
 
-        return enrichResponse(savedTicket, ticketMapper.toTicketResponse(savedTicket));
+        if (status == Status.COMPLETED) {
+            try {
+                Long resolverId = assignedUserId != null ? assignedUserId : resolveCurrentUserId();
+                String resolverName = null;
+                if (resolverId != null) {
+                    resolverName = userRepository.findById(resolverId)
+                            .map(u -> (u.getFirstName() + " " + u.getLastName()).trim())
+                            .orElse(null);
+                }
+                if (resolverName == null || resolverName.isBlank()) {
+                    resolverName = enriched.assignedName() != null ? enriched.assignedName() : resolveCurrentUserName();
+                }
+
+                eventPublisher.publishEvent(new TicketResolvedEvent(
+                        savedTicket.getId(),
+                        savedTicket.getTicketTitle(),
+                        savedTicket.getCreatedBy(),
+                        resolverId,
+                        resolverName,
+                        remark
+                ));
+            } catch (Exception ex) {
+                log.error("Failed to publish TicketResolvedEvent for ticketId={}", savedTicket.getId(), ex);
+            }
+        }
+
+        return enriched;
     }
 
     @Override
